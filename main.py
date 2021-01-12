@@ -14,12 +14,15 @@ from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras.optimizers import Adam
 
 # Loading in files and establishing route folder
-os.path.join("D:", "Msc Computer Science", "Python", "Image Colourisation - Convolutional Neural Network")
-filenames = random.sample(
-    os.listdir('D:\\Msc Computer Science\\Python\\Image Colourisation - Convolutional Neural Network\\Train'),
-    100)  # replace with path of training images. #number represents sample size. Increase for greater accuracy
+os.path.join("D:", "Msc Computer Science", "Python", "Colournet", "images")
+
+folder = 'D:\\Msc Computer Science\\Python\\Colournet\\images\\Train'
+
+filenames = random.sample(os.listdir(folder),100)  # replace with path of training images. #number represents sample size. Increase for greater accuracy
+
 rootdir = os.getcwd()
-dir = 'Train'
+
+dir = 'D:\\Msc Computer Science\\Python\\Colournet\\images\\Train'
 
 lspace = []
 abspace = []
@@ -44,12 +47,15 @@ for file in filenames:
 lspace = np.asarray(lspace)  # convert to array
 abspace = np.asarray(abspace)  # convert to array
 
-X = lspace
-Y = abspace
+#X = lspace
+#Y = abspace
 
 # Having issue with below lines.
-# X = np.load("lspace100.npy")
-# Y = np.load("abspace100.npy")
+np.save("lspace100.npy", lspace)
+np.save("abspace100.npy", abspace)
+
+X = np.load("lspace100.npy")
+Y = np.load("abspace100.npy")
 
 # Structuring model. Using CNN+VGG-16
 model6 = VGG16(weights='imagenet', include_top=False, input_shape=(256, 256, 3))
