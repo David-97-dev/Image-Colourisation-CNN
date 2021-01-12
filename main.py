@@ -1,7 +1,7 @@
 import os
 import random
 from math import ceil
-
+from PIL import Image
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,7 +18,8 @@ os.path.join("D:", "Msc Computer Science", "Python", "Colournet", "images")
 
 folder = 'D:\\Msc Computer Science\\Python\\Colournet\\images\\Train'
 
-filenames = random.sample(os.listdir(folder),100)  # replace with path of training images. #number represents sample size. Increase for greater accuracy
+filenames = random.sample(os.listdir(folder),
+                          10)  # replace with path of training images. #number represents sample size. Increase for greater accuracy
 
 rootdir = os.getcwd()
 
@@ -33,8 +34,7 @@ abspace = []
 
 for file in filenames:
     rgb = io.imread((os.path.join(dir, file)))
-    lab_image = cv2.cvtColor(rgb, cv2.COLOR_BGR2LAB)
-    # convert colors space from RGB to LAB
+    lab_image = cv2.cvtColor(rgb, cv2.COLOR_BGR2LAB)  # convert colors space from RGB to LAB
     l_channel, a_channel, b_channel = cv2.split(lab_image)
     lspace.append(l_channel)
     replot_lab = np.zeros((256, 256, 2))
@@ -47,15 +47,13 @@ for file in filenames:
 lspace = np.asarray(lspace)  # convert to array
 abspace = np.asarray(abspace)  # convert to array
 
-#X = lspace
-#Y = abspace
-
-# Having issue with below lines.
 np.save("lspace100.npy", lspace)
 np.save("abspace100.npy", abspace)
 
 X = np.load("lspace100.npy")
 Y = np.load("abspace100.npy")
+
+print(X.shape)
 
 # Structuring model. Using CNN+VGG-16
 model6 = VGG16(weights='imagenet', include_top=False, input_shape=(256, 256, 3))
@@ -85,11 +83,16 @@ print(model.summary())
 
 
 # creating optimiser
+
+
 def adam_optimizer():
     return Adam(lr=0.001, beta_1=0.99, beta_2=0.999)
+
+
 model.compile(loss='mape', optimizer=adam_optimizer())
 
-#Data prep
+# Data prep
+print('Preping learning data')
 X = ((X.reshape(X.shape[0], X.shape[1], X.shape[2], 1)))
 X = (X - 255) / 255
 Y = (Y - 255) / 255
@@ -101,24 +104,11 @@ test_inp = X[testsize:, ]
 train_out = Y[:trainsize, ]
 test_out = Y[testsize:, ]
 
-#train model
-model.fit(x=train_inp, y=train_out, batch_size=10, epochs=3)
+# train model
 
+print(train_inp.shape)
+print(test_inp.shape)
+print('Running model fit')
 
-#obtain predictions
-train_predictions = model.predict(train_inp)
-test_predictions = model.predict(test_inp)
-train_random = random.randint(1, trainsize)
-test_random = random.randint(1, testsize)
-check = np.interp(train_predictions, (train_predictions.min(), train_predictions.max()), (0, 255))
-check1 = np.interp(test_predictions, (test_predictions.min(), test_predictions.max()), (0, 255))
-l_channel = test_inp[20] * 255
-a_channel = check1[20, :, :, 0]
-b_channel = check1[20, :, :, 1]
-transfer = cv2.merge([l_channel, a_channel, b_channel])
-transfer = cv2.cvtColor(transfer.astype("uint8"),
-                        cv2.COLOR_LAB2BGR)
-
-#view results
-plt.savefig('transfer.png')
-plt.imshow(transfer)
+model.fit(x=train_inp, y=train_out, batch_size=1, epochs=1)
+model.save('saved_model/my_model')
